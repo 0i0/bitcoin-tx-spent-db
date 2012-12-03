@@ -1,34 +1,67 @@
-# node-bitcoin-explorer
+Bitcoin-tx-spent-db
+===============
 
-This is mostly intended as a demo application for
-[bitcoinjs-server](https://github.com/bitcoinjs/bitcoinjs-server). It
-replicates most of the functionality of the popular [Block
-Explorer](http://blockexplorer.com/) website.
+Based on: https://github.com/bitcoinjs/node-bitcoin-explorer
 
-# Installation
+This is a reverse of the bitcoin tx graph you can query which txs spends a certain output
 
-Before you install `node-bitcoin-explorer`, make sure you have
-[bitcoinjs-server](https://github.com/bitcoinjs/bitcoinjs-server)
-installed.
+Installation in Ubuntu:
 
-``` sh
-# Get node-bitcoin-explorer
-git clone git://github.com/justmoon/node-bitcoin-explorer.git --recursive
+after fresh install
 
-# Go to folder
-cd node-bitcoin-explorer
+    sudo apt-get update
 
-# Link to global bitcoinjs installation
-npm link bitcoinjs
+Dependencies
 
-# Install dependencies
-npm install
-```
+    sudo apt-get install build-essential python2.7 pkg-config libssl-dev git
 
-# Usage
+Node v0.8.8
 
-To start the server
+    git clone git://github.com/joyent/node.git
+    cd node
+    git checkout v0.8.8
+    ./configure
+    make
+    sudo make install
+
+Install bitcoinJS:
+
+    sudo npm install -g bitcoinjs --unsafe-perm
+
+    mkdir /home/ubuntu/.bitcoinjs
+    cp /usr/local/lib/node_modules/bitcoinjs/daemon/settings.example.js /home/ubuntu/.bitcoinjs/settings.js
+
+Install Bitcoin-tx-spent-db:
+
+    cd ~
+
+    git clone git://github.com/0i0/bitcoin-tx-spent-db.git
+
+    cd Bitcoin-tx-spent-db/
+    sudo npm link bitcoinjs
+    sudo npm install
+
+    cp ~/bitcoinjs-color/node_modules/bitcoinjs/daemon/settings.example.js ~/bitcoinjs-color/node_modules/bitcoinjs/daemon/settings.js
+
+Edit ~/bitcoinjs-color/node_modules/bitcoinjs/daemon/settings.js
+Change the following:
+
+    cfg.jsonrpc.enable = true;
+    cfg.jsonrpc.password = "admin";
+
+This is for Amazon AWS to work on port 80
+
+    sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 3333
+
+Creating the DB
+
+    bitcoinjs start
+    node app.js create
+    
+Droping the DB
+
+    node app.js create
+    
+Running the query server
 
     node app.js
-
-The application will be visible on http://localhost:3000/
