@@ -1,0 +1,30 @@
+body {
+background: hsl(0, 0%, 20%);
+color: hsl(0, 0%, 80%);
+font-family: 'Menlo'
+;
+font-size: 12px;
+}
+a { color: #06e; }
+a:visited { color: #06e; }
+a:hover { color: #06e; }
+a:focus { outline: thin dotted; }
+
+#json{
+	padding: 30px;
+}
+li,ul {
+	list-style: none;
+}
+ul {
+	margin-left: 20px;
+}
+li,ul {
+	list-style: none;
+}
+.property {
+	color: hsl(130, 35%, 63%);
+}
+.sep{
+	padding: 0 10px;
+}

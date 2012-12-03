@@ -1,0 +1,52 @@
+extends layout
+
+block content
+	div#json
+		ul
+		- for(var key in tx) {
+		-		if (key == "in" || key == "out") {} else {
+					li
+						span.property !{key}
+						span.sep :
+						span.type-string !{tx[key]}
+		- 	}
+		- }
+			li
+				span.property in
+				span.sep :
+				ul
+					- for(var i = 0,n = tx.in.length; i<n ; i++) {
+					- 	for(var key in tx.in[i]) {
+						li
+							span.property !{key}
+							span.sep :
+							- if (key == "prev_out") {
+								ul
+									li
+										span.property hash
+										span.sep :
+										span.type-string 
+											a(href="/tx/"+tx.in[i].prev_out.hash) !{tx.in[i].prev_out.hash}
+									li
+										span.property n
+										span.sep :
+										span.type-string !{tx.in[i].n}
+							-	}else{
+								span.type-string !{tx.in[i][key]}
+							-	}
+					- 	}
+					- }
+			li
+				span.property out
+				span.sep :
+				ul
+					- for(var i = 0,n = tx.out.length; i<n ; i++) {
+					- 	for(var key in tx.out[i]) {
+						li
+							span.property !{key}
+							span.sep :
+							span.type-string !{tx.out[i][key]}
+					- 	}
+					- }
+
+
