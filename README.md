@@ -13,7 +13,11 @@ after fresh install
 
 Dependencies
 
-    sudo apt-get install build-essential python2.7 pkg-config libssl-dev git
+    sudo apt-get install build-essential python2.7 pkg-config libssl-dev git mongodb-10gen
+
+Configure MongoDB
+    
+[Configuring Mongo on Ubuntu](http://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/)
 
 Node v0.8.8
 
