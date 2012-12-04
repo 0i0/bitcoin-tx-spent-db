@@ -25,7 +25,8 @@
     "jade" :">=0.0.1",
     "step": ">=0.0.4",
     "jsonrpc2": ">=0.1.0",
-    "mongodb" : ">=0.1.0"
+    "mongodb" : ">=0.1.0",
+    "toposort" : ">=0.1.0"
   },
 
   "author": "Stefan Thomas <justmoon@members.fsf.org> (http://www.justmoon.net)",

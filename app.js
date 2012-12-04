@@ -3,6 +3,7 @@
  */
 var express = require('express');
 var winston = require('winston');
+var toposort = require('toposort')
 var Step = require('step');
 var bitcoin = require('bitcoinjs');
 var RpcClient = require('jsonrpc2').Client;
@@ -41,6 +42,9 @@ app.get('/',function(req, res){
   res.render('home.jade',{})
 })
 
+/*
+* Get Txs that spends a specific tx (only one level)
+*/
 app.get('/json/tx/:txHash', function(req, res, next){
   var hash = req.params.txHash;
   console.log(hash)
@@ -55,6 +59,61 @@ app.get('/json/tx/:txHash', function(req, res, next){
     })
   })
 });
+
+
+/*
+* Get Tx tree that spends a specific tx
+*/
+app.get('/json/txSpentTree/:txHash', function(req, res, next){
+  var hashToSpend = req.params.txHash;
+  Step(
+    function openDB (){
+      db.open(this)
+    },
+    function(err, db) {
+      if (err) { console.log(err); return; }
+      db.collection('spentdb', this)
+    },
+    function (err,collection){
+      getTxChildren(collection,[],hashToSpend,this);
+    },
+    function finished(err,txTree){
+      if (err) return console.log(err)
+      console.log(txTree)
+      var sortedTx = toposort(txTree)
+      db.close()
+      res.write(JSON.stringify(sortedTx))
+      res.end()
+    }
+  )
+});
+
+
+/*
+* Recursion function for grabing spent Txs
+*/
+function getTxChildren(collection,txTree,hash,callback){
+  var currentHash = hash
+  Step(
+    function(){
+      collection.find({prev_txhash:currentHash}).toArray(this)
+    },
+    function getTx(err, results){
+      if (err) { console.log(err); return; }
+      var group = this.group();
+      console.log('phase: '+ currentHash +' outputs: '+results.length)
+      for (var i =  0; i < results.length; i++) {
+        var spendingHash = results[i].txhash
+        var hashToSpend = results[i].prev_txhash
+        txTree.push([hashToSpend,spendingHash])
+        getTxChildren(collection,txTree,spendingHash,group())
+      }
+    },
+    function finished(err,tx2Tree){
+      callback(err,txTree);
+    }
+  );
+}
 
 var rpcClient = new RpcClient(config.jsonrpc.port, config.jsonrpc.host,
                               config.jsonrpc.username, config.jsonrpc.password);
@@ -144,14 +203,22 @@ function everParseBlock(blockHash){
       db.collection('spentdb', function (err, collection){
         if (err) return console.log(err);
         txs.forEach(function(tx){
-          tx.tx.in.forEach(function(input){
+          for (var i = 0; i < tx.tx.in.length; i++) {
             var rec =
-              { prev_txhash : input.prev_out.hash
-              , prev_out_index : input.prev_out.n
+              { prev_txhash : tx.tx.in[i].prev_out.hash
+              , prev_out_index : i
               , txhash : tx.tx.hash
               }
-            collection.insert(rec,insertGroup())
-          })
+            collection.update(
+                { prev_txhash : tx.tx.in[i].prev_out.hash
+                , prev_out_index : i
+                , txhash : tx.tx.hash
+                }
+                , rec
+                , {upsert:true}
+                , insertGroup()
+            );
+          };
         })
       })
     },
@@ -175,7 +242,3 @@ function everParseBlock(blockHash){
     }
   );
 }
-
-
-
-
